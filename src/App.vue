@@ -4,7 +4,7 @@
       <v-flex v-for="block in blockchain" :key="block.index" xs8>
         <BlocoCard
           style="margin-top: 50px;"
-          :valid="valid"
+          :valid="block.valid"
           :timestamp="block.timestamp"
           :data="block.data"
           :hashAnterior="block.hashAnterior"
@@ -43,6 +43,7 @@ export default {
   created() {
     this.blockchain = [this.criarBlockInicial()]
     this.blocoAnterior = this.blockchain[0]
+    this.$root.$on("validBlock", this.validBlock)
   },
 
   methods: {
@@ -51,18 +52,28 @@ export default {
       this.criarBlockchain(this.count)
     },
 
-    criarBlockInicial: () => new Bloco(0, Date.now(), "Bloco Inicial", "0"),
+    validBlock(valid) {
+      this.valid = valid
+    },
+
+    criarBlockInicial: () =>
+      new Bloco(0, Date.now(), "Bloco Inicial", "0", true),
 
     proximoBloco(ultimoBloco, data) {
       return new Bloco(
         ultimoBloco.index + 1,
         Date.now(),
         data,
-        ultimoBloco.hash
+        ultimoBloco.hash,
+        ultimoBloco.valid
       )
     },
 
     criarBlockchain() {
+      if (!this.valid) {
+        alert("Bloco Inválido")
+        return
+      }
       const bloco = this.proximoBloco(
         this.blocoAnterior,
         `Este é o bloco #${this.index++}`

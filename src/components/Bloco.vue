@@ -63,14 +63,17 @@ export default {
     verificaHash() {
       if (this.blockData === this.data) {
         this.valid = true
+        this.$root.$emit("validBlock", this.valid)
       } else {
         this.valid = false
+        this.$root.$emit("validBlock", this.valid)
       }
     },
 
     minerar() {
       this.blockData = this.data
       this.valid = true
+      this.$root.$emit("validBlock", this.valid)
     }
   }
 }
