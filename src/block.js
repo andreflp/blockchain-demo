@@ -2,8 +2,9 @@ import sha256 from "js-sha256"
 import moment from "moment"
 
 export default class Bloco {
-  constructor(index, timestamp, data, hashAnterior, valid) {
+  constructor(index, title, timestamp, data, hashAnterior, valid) {
     this.index = index
+    this.title = title
     this.timestamp = moment(timestamp).format("DD-MM-YYYY h:mm:ss")
     this.data = data
     this.hashAnterior = hashAnterior

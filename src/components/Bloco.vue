@@ -4,7 +4,7 @@
       <v-card class="card-round">
         <v-card-title primary-title>
           <div>
-            <div class="headline">{{ data }}</div>
+            <div class="headline">{{ title }}</div>
             <div style="margin-top: 5px;">
               <span>Hash Anterior:</span>
               <span v-if="valid" class="green--text" style="margin-left: 3px;">{{ hashAnterior }}</span>
@@ -43,6 +43,8 @@
 <script>
 export default {
   props: {
+    index: [String, Number],
+    title: String,
     timestamp: String,
     data: String,
     hashAnterior: String,
@@ -61,18 +63,30 @@ export default {
 
   methods: {
     verificaHash() {
+      let obj = null
       if (this.blockData === this.data) {
-        this.valid = true
-        this.$root.$emit("validBlock", this.valid)
+        obj = {
+          index: this.index,
+          valid: true
+        }
+        this.$root.$emit("validBlock", obj)
       } else {
-        this.valid = false
-        this.$root.$emit("validBlock", this.valid)
+        obj = {
+          index: this.index,
+          valid: false
+        }
+        this.$root.$emit("validBlock", obj)
       }
     },
 
     minerar() {
-      this.blockData = this.data
       this.valid = true
+      const obj = {
+        index: this.index,
+        blockData: this.blockData,
+        valid: this.valid
+      }
+      this.$root.$emit("minerar", obj)
       this.$root.$emit("validBlock", this.valid)
     }
   }

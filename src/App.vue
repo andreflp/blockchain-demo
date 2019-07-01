@@ -4,6 +4,8 @@
       <v-flex v-for="block in blockchain" :key="block.index" xs8>
         <BlocoCard
           style="margin-top: 50px;"
+          :index="block.index"
+          :title="block.title"
           :valid="block.valid"
           :timestamp="block.timestamp"
           :data="block.data"
@@ -24,6 +26,8 @@
 <script>
 import BlocoCard from "@/components/Bloco"
 import Bloco from "@/block"
+import sha256 from "js-sha256"
+import moment from "moment"
 export default {
   components: {
     BlocoCard
@@ -44,6 +48,7 @@ export default {
     this.blockchain = [this.criarBlockInicial()]
     this.blocoAnterior = this.blockchain[0]
     this.$root.$on("validBlock", this.validBlock)
+    this.$root.$on("minerar", this.minerar)
   },
 
   methods: {
@@ -52,16 +57,46 @@ export default {
       this.criarBlockchain(this.count)
     },
 
-    validBlock(valid) {
-      this.valid = valid
+    validBlock(obj) {
+      this.blockchain.forEach(item => {
+        if (item.index == obj.index) {
+          item.valid = obj.valid
+        }
+      })
     },
 
-    criarBlockInicial: () =>
-      new Bloco(0, Date.now(), "Bloco Inicial", "0", true),
+    minerar(obj) {
+      this.blockchain.forEach(item => {
+        if (item.index == obj.index) {
+          item.data = obj.blockData
+          item.timestamp = moment(Date.now()).format("DD-MM-YYYY h:mm:ss")
+          item.valid = obj.valid
+          item.hash = sha256(
+            item.index + item.timestamp + item.data + item.hashAnterior
+          )
+        }
+      })
+    },
 
-    proximoBloco(ultimoBloco, data) {
+    // verificarBlocosInvalidos(index) {
+    //   let bloco = this.blockchain.filter(item => item.index == index)
+    //   for (let i = 0; i < this.blockchain.length; i++) {
+    //     const item = this.blockchain[i]
+    //     if (bloco[0].index == item.index) continue
+
+    //     if(bloco.hash) {
+
+    //     }
+    //   }
+    // },
+
+    criarBlockInicial: () =>
+      new Bloco(0, "Bloco Inicial", Date.now(), "Transação 1", "0", true),
+
+    proximoBloco(ultimoBloco, data, title) {
       return new Bloco(
         ultimoBloco.index + 1,
+        title,
         Date.now(),
         data,
         ultimoBloco.hash,
@@ -74,9 +109,11 @@ export default {
         alert("Bloco Inválido")
         return
       }
+      this.index++
       const bloco = this.proximoBloco(
         this.blocoAnterior,
-        `Este é o bloco #${this.index++}`
+        `Transação nº ${this.index}`,
+        `Este é o bloco #${this.index}`
       )
       this.blockchain.push(bloco)
       this.blocoAnterior = bloco
