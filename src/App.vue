@@ -8,6 +8,7 @@
           :title="block.title"
           :valid="block.valid"
           :timestamp="block.timestamp"
+          :indexAnterior="block.indexAnterior"
           :data="block.data"
           :hashAnterior="block.hashAnterior"
           :hash="block.hash"
@@ -16,21 +17,24 @@
     </v-layout>
     <v-layout justify-center style="margin-top: 30px;">
       <v-flex x12 text-xs-center>
-        <h2>Blocos na rede: {{ blockList.length }}</h2>
+        <h2>Blocos na rede: {{ blockchain.length }}</h2>
         <v-btn color="primary" @click="criarBlockchain">Add Novo Bloco</v-btn>
       </v-flex>
     </v-layout>
+    <Modal />
   </v-app>
 </template>
 
 <script>
 import BlocoCard from "@/components/Bloco"
+import Modal from "@/components/Modal"
 import Bloco from "@/block"
 import sha256 from "js-sha256"
 import moment from "moment"
 export default {
   components: {
-    BlocoCard
+    BlocoCard,
+    Modal
   },
   name: "App",
   data() {
@@ -65,37 +69,46 @@ export default {
       })
     },
 
+    verificarBlocosInvalidos(indexBlock) {
+      let bloco = this.blockchain.filter(item => item.index == indexBlock)
+      debugger
+      if (bloco[0].valid === false) {
+        this.blockchain.forEach((item, index) => {
+          if (index < indexBlock) return
+          item.valid = false
+        })
+      }
+    },
+
     minerar(obj) {
+      this.verificarBlocosInvalidos(obj.index)
+      let blocoAnterior = null
+      if (obj.index != 0) {
+        blocoAnterior = this.blockchain.filter(
+          block => block.index == obj.indexAnterior
+        )
+      } else {
+        blocoAnterior = 0
+      }
+
       this.blockchain.forEach(item => {
         if (item.index == obj.index) {
           item.data = obj.blockData
           item.timestamp = moment(Date.now()).format("DD-MM-YYYY h:mm:ss")
-          item.valid = obj.valid
-          item.hash = sha256(
-            item.index + item.timestamp + item.data + item.hashAnterior
-          )
+          item.valid = true
+          item.hashAnterior = blocoAnterior == 0 ? "0" : blocoAnterior[0].hash
+          item.hash = sha256(item.index + item.timestamp + item.hashAnterior)
         }
       })
     },
 
-    // verificarBlocosInvalidos(index) {
-    //   let bloco = this.blockchain.filter(item => item.index == index)
-    //   for (let i = 0; i < this.blockchain.length; i++) {
-    //     const item = this.blockchain[i]
-    //     if (bloco[0].index == item.index) continue
-
-    //     if(bloco.hash) {
-
-    //     }
-    //   }
-    // },
-
     criarBlockInicial: () =>
-      new Bloco(0, "Bloco Inicial", Date.now(), "Transação 1", "0", true),
+      new Bloco(0, 0, "Bloco Inicial", Date.now(), "Transação 1", "0", true),
 
     proximoBloco(ultimoBloco, data, title) {
       return new Bloco(
         ultimoBloco.index + 1,
+        ultimoBloco.index,
         title,
         Date.now(),
         data,
@@ -105,8 +118,9 @@ export default {
     },
 
     criarBlockchain() {
-      if (!this.valid) {
-        alert("Bloco Inválido")
+      const lastBlock = this.blockchain.slice(-1)[0]
+      if (!lastBlock.valid) {
+        this.$root.$emit("showModal", true)
         return
       }
       this.index++

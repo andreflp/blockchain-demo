@@ -48,6 +48,7 @@ export default {
     timestamp: String,
     data: String,
     hashAnterior: String,
+    indexAnterior: [String, Number],
     hash: String,
     valid: Boolean
   },
@@ -84,7 +85,8 @@ export default {
       const obj = {
         index: this.index,
         blockData: this.blockData,
-        valid: this.valid
+        valid: this.valid,
+        indexAnterior: this.indexAnterior
       }
       this.$root.$emit("minerar", obj)
       this.$root.$emit("validBlock", this.valid)
