@@ -71,7 +71,6 @@ export default {
 
     verificarBlocosInvalidos(indexBlock) {
       let bloco = this.blockchain.filter(item => item.index == indexBlock)
-      debugger
       if (bloco[0].valid === false) {
         this.blockchain.forEach((item, index) => {
           if (index < indexBlock) return
